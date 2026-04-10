@@ -29,7 +29,12 @@ app.use("/api/employer", employerRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api/applications", applicationRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use(express.static(path.join(__dirname, "../client/dist")));
 
+// Fallback to index.html for React Router
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../client/dist", "index.html"));
+});
 userDatabase.connectDb(process.env.MONGO_URI);
 
 app.listen(port, () => {

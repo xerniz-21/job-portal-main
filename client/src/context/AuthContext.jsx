@@ -16,8 +16,8 @@ export function AuthProvider({ children }) {
         const currentRole = localStorage.getItem('userRole');
         if (currentRole) {
           const res = await api.get(`/${currentRole}/profile`);
-          // user data structure depends on backend API, just using res.data.data mock pattern
-          setUser(res.data.data || res.data);
+          // user data structure depends on backend API, just using res.data.payload mock pattern
+          setUser(res.data.payload || res.data);
           setRole(currentRole);
         }
       } catch (error) {
@@ -36,7 +36,7 @@ export function AuthProvider({ children }) {
 
   const loginUser = async (email, password) => {
     const res = await api.post('/login', { email, password });
-    const { accessToken, role: userRole } = res.data.data;
+    const { accessToken, role: userRole } = res.data.payload;
     
     // Store core info
     localStorage.setItem('accessToken', accessToken);
@@ -45,7 +45,7 @@ export function AuthProvider({ children }) {
     
     // Fetch profile immediately after login
     const profileRes = await api.get(`/${userRole}/profile`);
-    setUser(profileRes.data.data || profileRes.data);
+    setUser(profileRes.data.payload || profileRes.data);
     
     return { role: userRole };
   };

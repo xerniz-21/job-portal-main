@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:3000/api',
+  baseURL: import.meta.env.DEV ? 'http://localhost:3000/api' : '/api',
   withCredentials: true, // Required for cookies (refresh token)
 });
 
@@ -31,7 +31,7 @@ api.interceptors.response.use(
       originalRequest._retry = true;
       try {
         const res = await api.get('/refresh-token');
-        const newAccessToken = res.data.data.accessToken;
+        const newAccessToken = res.data.payload.accessToken;
         
         localStorage.setItem('accessToken', newAccessToken);
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
