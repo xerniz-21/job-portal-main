@@ -10,6 +10,7 @@ import Profile from './pages/profile/Profile';
 import EmployerDashboard from './pages/employer/EmployerDashboard';
 import PostJob from './pages/employer/PostJob';
 import ManageJobs from './pages/employer/ManageJobs';
+import EditJob from './pages/employer/EditJob';
 import Applicants from './pages/employer/Applicants';
 import Settings from './pages/settings/Settings';
 
@@ -32,8 +33,9 @@ function App() {
 
           <Route path="/employer/dashboard" element={<EmployerDashboard />} />
           <Route path="/employer/post-job" element={<PostJob />} />
+          <Route path="/employer/edit-job/:id" element={<EditJob />} />
           <Route path="/employer/manage-jobs" element={<ManageJobs />} />
-          <Route path="/employer/applicants" element={<Applicants />} />
+          <Route path="/employer/jobs/:jobId/applicants" element={<Applicants />} />
         </Route>
       </Routes>
     </Router>

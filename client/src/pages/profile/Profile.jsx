@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axiosClient';
 
 export default function Profile() {
-  const { role, user, updateUserProfile } = useAuth(); // jobseeker | employer
+  const { role, user, updateUserProfile, fetchProfile } = useAuth(); // jobseeker | employer
   const [isSaving, setIsSaving] = useState(false);
   const [saveComplete, setSaveComplete] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -78,7 +78,8 @@ export default function Profile() {
       await api.post('/jobseeker/resume', data, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      alert('Resume uploaded successfully!');
+      await fetchProfile();
+      alert('Resume uploaded successfully.');
     } catch (err) {
       console.error("Resume upload failed", err);
       alert('Resume upload failed.');
@@ -159,7 +160,18 @@ export default function Profile() {
           <>
             <hr style={{ border: 'none', borderTop: '1px solid var(--glass-border)', margin: '32px 0' }} />
             <div>
-              <h3 style={{ marginBottom: '16px', fontSize: '18px' }}>Resume Upload</h3>
+              <h3 style={{ marginBottom: '16px', fontSize: '18px' }}>Resume Tracking</h3>
+              {user?.resume?.url && (
+                <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', background: 'rgba(59, 130, 246, 0.05)', borderRadius: '12px', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+                  <div>
+                    <h4 style={{ margin: '0 0 4px 0', fontSize: '15px' }}>Active Resume Submitted</h4>
+                    <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)' }}>This document is visible to employers you apply to.</p>
+                  </div>
+                  <a href={`http://localhost:3000/${user.resume.url.replace(/\\/g, '/')}`} target="_blank" rel="noreferrer" className="btn-secondary" style={{ textDecoration: 'none' }}>
+                    Preview File
+                  </a>
+                </div>
+              )}
               <label 
                 htmlFor="resume-upload"
                 style={{ 

@@ -10,7 +10,6 @@ export default function Sidebar() {
     { name: 'Dashboard', path: '/employer/dashboard', icon: <Home size={20} /> },
     { name: 'Post Job', path: '/employer/post-job', icon: <Plus size={20} /> },
     { name: 'Manage Jobs', path: '/employer/manage-jobs', icon: <Briefcase size={20} /> },
-    { name: 'Applicants', path: '/employer/applicants', icon: <Users size={20} /> },
     { name: 'Profile', path: '/profile', icon: <User size={20} /> },
     { name: 'Settings', path: '/settings', icon: <Settings size={20} /> },
   ] : [

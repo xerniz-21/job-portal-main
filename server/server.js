@@ -12,13 +12,25 @@ const jobseekerRoutes = require("./routes/jobseekerRoutes");
 const employerRoutes = require("./routes/employerRoutes");
 const jobRoutes = require("./routes/jobRoutes");
 const applicationRoutes = require("./routes/applicationRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 
 const app = express();
 
-app.use(helmet()); 
+app.use(helmet());
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174"
+];
+
 app.use(cors({
-  origin: "http://localhost:5173",
-  credentials: true, 
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
 }));
 app.use(express.json());
 app.use(cookieParser());
@@ -28,11 +40,15 @@ app.use("/api/jobseeker", jobseekerRoutes);
 app.use("/api/employer", employerRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api/applications", applicationRoutes);
+app.use("/api/notifications", notificationRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use(express.static(path.join(__dirname, "../client/dist")));
 
 // Fallback to index.html for React Router
-app.get("*", (req, res) => {
+app.use(express.static(path.join(__dirname, "../client/dist")));
+
+// ✅ FIXED fallback (React Router ke liye)
+app.use((req, res) => {
   res.sendFile(path.join(__dirname, "../client/dist", "index.html"));
 });
 userDatabase.connectDb(process.env.MONGO_URI);

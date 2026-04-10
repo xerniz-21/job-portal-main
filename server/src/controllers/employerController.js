@@ -19,7 +19,17 @@ const updateProfile = async (req, res) => {
   }
 };
 
+const getMyJobs = async (req, res) => {
+  try {
+    const data = await employerService.getMyJobs(req.user.userId);
+    return responseHelper.handleSuccess(res, data);
+  } catch (error) {
+    return responseHelper.handleError(res, error);
+  }
+};
+
 module.exports = {
   getProfile,
   updateProfile,
+  getMyJobs,
 };

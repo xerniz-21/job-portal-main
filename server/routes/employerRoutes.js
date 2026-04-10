@@ -14,5 +14,11 @@ router.put(
   authorizeRole("employer"),
   employerController.updateProfile,
 );
+router.get(
+  "/jobs",
+  verifyToken,
+  authorizeRole("employer"),
+  employerController.getMyJobs,
+);
 
 module.exports = router;

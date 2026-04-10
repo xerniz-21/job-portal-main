@@ -8,30 +8,27 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Initial load
-  useEffect(() => {
-    const initializeAuth = async () => {
+  const fetchProfile = async () => {
+    const currentRole = localStorage.getItem('userRole');
+    if (currentRole) {
       try {
-        // Assume interceptor deals with token rotations, just check if profile loads
-        const currentRole = localStorage.getItem('userRole');
-        if (currentRole) {
-          const res = await api.get(`/${currentRole}/profile`);
-          // user data structure depends on backend API, just using res.data.payload mock pattern
-          setUser(res.data.payload || res.data);
-          setRole(currentRole);
-        }
+        const res = await api.get(`/${currentRole}/profile`);
+        setUser(res.data.payload || res.data);
+        setRole(currentRole);
       } catch (error) {
         console.error('Session initialization failed:', error);
-        localStorage.removeItem('userRole');
-        localStorage.removeItem('accessToken');
-        setRole(null);
-        setUser(null);
+        logout();
       } finally {
         setLoading(false);
       }
-    };
+    } else {
+      setLoading(false);
+    }
+  };
 
-    initializeAuth();
+  // Initial load
+  useEffect(() => {
+    fetchProfile();
   }, []);
 
   const loginUser = async (email, password) => {
@@ -72,7 +69,7 @@ export function AuthProvider({ children }) {
 
   // We should only export what's needed
   return (
-    <AuthContext.Provider value={{ role, user, loginUser, logout, updateUserProfile, loading }}>
+    <AuthContext.Provider value={{ role, user, loginUser, logout, updateUserProfile, loading, fetchProfile }}>
       {children}
     </AuthContext.Provider>
   );

@@ -63,7 +63,7 @@ export default function EmployerDashboard() {
             </tbody>
           </table>
           <div style={{ textAlign: 'center', marginTop: '24px' }}>
-            <Link to="/employer/applicants" style={{ fontSize: '14px', color: 'var(--primary-main)', textDecoration: 'none', fontWeight: 500 }}>View All Applicants →</Link>
+            <Link to="/employer/manage-jobs" style={{ fontSize: '14px', color: 'var(--primary-main)', textDecoration: 'none', fontWeight: 500 }}>Manage applications →</Link>
           </div>
         </div>
 

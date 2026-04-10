@@ -1,10 +1,34 @@
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Bell, Search, User, LogOut } from 'lucide-react';
+import { Bell, Search, User, LogOut, Check } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import api from '../../api/axiosClient';
 
 export default function Navbar() {
   const { role, user, logout } = useAuth();
   const navigate = useNavigate();
+  
+  const [notifications, setNotifications] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      api.get('/notifications').then(res => {
+        setNotifications((res.data.payload || []).slice(0, 10)); // strictly enforce 10 natively visually mapping
+      }).catch(err => console.error("Failed to load notifications", err));
+    }
+  }, [role, user]);
+
+  const unreadCount = notifications.filter(n => !n.isRead).length;
+
+  const markAsRead = async (id) => {
+    try {
+      await api.patch(`/notifications/${id}/read`);
+      setNotifications(notifications.map(n => n._id === id ? { ...n, isRead: true } : n));
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const handleLogout = () => {
     if (logout) logout();
@@ -41,17 +65,49 @@ export default function Navbar() {
         />
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-        <button style={{ 
-          background: 'transparent', border: 'none', cursor: 'pointer', 
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', position: 'relative' }}>
+        <button 
+          onClick={() => setShowDropdown(!showDropdown)}
+          style={{ 
+          background: 'transparent', border: 'none', cursor: 'pointer', position: 'relative',
           color: 'var(--text-dark)', padding: '8px', borderRadius: '50%', transition: 'all 0.2s' 
         }}>
           <Bell size={20} />
+          {unreadCount > 0 && (
+            <span style={{ position: 'absolute', top: '4px', right: '4px', background: '#ef4444', color: 'white', fontSize: '10px', fontWeight: 'bold', width: '16px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%' }}>
+              {unreadCount}
+            </span>
+          )}
         </button>
+
+        {showDropdown && (
+          <div className="glass-panel animate-fade-in" style={{
+            position: 'absolute', top: '48px', right: '120px', width: '320px', padding: '16px',
+            maxHeight: '400px', overflowY: 'auto', zIndex: 1000, background: 'white'
+          }}>
+            <h4 style={{ margin: '0 0 12px 0', fontSize: '15px' }}>Notifications</h4>
+            {notifications.length === 0 ? (
+              <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>No notifications yet.</div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {notifications.map(n => (
+                  <div key={n._id} onClick={() => markAsRead(n._id)} style={{ padding: '12px', borderRadius: '8px', background: n.isRead ? 'var(--bg-color-light)' : 'rgba(59, 130, 246, 0.1)', border: '1px solid var(--glass-border)', cursor: 'pointer', transition: 'background 0.2s' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
+                      <strong style={{ fontSize: '13px', color: 'var(--text-dark)' }}>{n.title}</strong>
+                      {!n.isRead && <div style={{ width: '8px', height: '8px', background: 'var(--primary-main)', borderRadius: '50%' }}></div>}
+                    </div>
+                    <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.4' }}>{n.message}</p>
+                    <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '8px' }}>{new Date(n.createdAt).toLocaleString()}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         
         <Link to="/profile" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none', color: 'inherit' }}>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '14px', fontWeight: 600 }}>{user.firstName} {user.lastName}</div>
+            <div style={{ fontSize: '14px', fontWeight: 600 }}>{user?.fullName || 'User'}</div>
             <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
               {role === 'jobseeker' ? 'Job Seeker' : 'Employer'}
             </div>

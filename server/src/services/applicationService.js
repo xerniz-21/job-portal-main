@@ -1,5 +1,6 @@
 const Application = require("../models/Application");
 const Job = require("../models/Job");
+const Notification = require("../models/Notification");
 const { createError } = require("../../helpers/errorHelper");
 
 const applyJob = async (jobseekerId, jobId) => {
@@ -14,6 +15,16 @@ const applyJob = async (jobseekerId, jobId) => {
   if (existingApplication) throw createError("Already applied for this job!!", 400);
 
   const application = await Application.create({ jobId, jobseekerId });
+
+  // Create explicit notification for the employer identifying the new applicant correctly mapping natively!
+  const User = require("../models/User");
+  const seeker = await User.findById(jobseekerId);
+  await Notification.create({
+    userId: job.employerId,
+    title: "New Job Application!",
+    message: `${seeker?.fullName || 'A candidate'} just applied to your mapping for ${job.title}.`
+  });
+
   return application;
 };
 
@@ -37,7 +48,16 @@ const getJobApplications = async (employerId, jobId) => {
     deletedAt: null,
   })
     .populate("jobseekerId", "fullName email")
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .lean();
+
+  const Jobseeker = require("../models/Jobseeker");
+  for (let app of applications) {
+    if (app.jobseekerId) {
+      const profile = await Jobseeker.findOne({ userId: app.jobseekerId._id }).lean();
+      app.jobseekerProfile = profile || null;
+    }
+  }
 
   return applications;
 };
@@ -60,6 +80,13 @@ const updateStatus = async (applicationId, status, employerId) => {
 
   application.status = status;
   await application.save();
+
+  // Create notification for the jobseeker regarding their application
+  await Notification.create({
+    userId: application.jobseekerId,
+    title: "Application Status Update",
+    message: `Your application for ${application.jobId.title} was ${status}.`,
+  });
 
   return application;
 };

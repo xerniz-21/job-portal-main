@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Briefcase, MapPin, DollarSign, ListChecks } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../api/axiosClient';
 
-export default function PostJob() {
+export default function EditJob() {
+  const { id } = useParams();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState({
     title: '',
     location: '',
@@ -13,6 +15,30 @@ export default function PostJob() {
     salary: '',
     description: ''
   });
+
+  useEffect(() => {
+    const fetchJob = async () => {
+      try {
+        const res = await api.get(`/jobs/${id}`);
+        const jobData = res.data.payload;
+        
+        setFormData({
+          title: jobData.title || '',
+          location: jobData.location || '',
+          jobType: jobData.jobType || '',
+          salary: jobData.salary || '',
+          description: jobData.description || ''
+        });
+      } catch (e) {
+        console.error(e);
+        alert("Failed to load job details.");
+        navigate('/employer/manage-jobs');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchJob();
+  }, [id, navigate]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -29,22 +55,24 @@ export default function PostJob() {
         salary: formData.salary ? Number(formData.salary) : null,
         description: formData.description
       };
-      await api.post('/jobs', payload);
-      alert('Job posted successfully!');
+      await api.put(`/jobs/${id}`, payload);
+      alert('Job updated successfully!');
       navigate('/employer/manage-jobs');
     } catch (e) {
       console.error(e);
-      alert('Failed to post job. Please try again.');
+      alert('Failed to update job. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  if (isLoading) return <div style={{ padding: '24px' }}>Loading...</div>;
+
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto' }}>
       <div style={{ marginBottom: '32px' }}>
-        <h1 style={{ fontSize: '28px', marginBottom: '8px' }}>Post a New Job</h1>
-        <p style={{ color: 'var(--text-muted)' }}>Fill in the details below to publish a new job opening.</p>
+        <h1 style={{ fontSize: '28px', marginBottom: '8px' }}>Edit Job</h1>
+        <p style={{ color: 'var(--text-muted)' }}>Update the details below to push corrections to your live job listing.</p>
       </div>
 
       <div className="glass-panel animate-slide-up" style={{ padding: '32px' }}>
@@ -105,7 +133,7 @@ export default function PostJob() {
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '16px' }}>
             <button type="submit" className="btn-primary" disabled={isSubmitting}>
-              {isSubmitting ? 'Publishing...' : 'Publish Job'}
+              {isSubmitting ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
         </form>
